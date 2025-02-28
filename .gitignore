@@ -1,2 +1,9 @@
-node_modules
-src/reservationapp-451619-0ec2cdd53369.json
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/reserveer
+/.vscode
+/bin/Debug/net8.0
+/obj
+/service-account-credentials.json
