@@ -1,0 +1,56 @@
+@page "/room-availability"
+@inject AfsprongCalendarService CalendarService
+
+<h3>Room Availability Checker</h3>
+
+<div class="form-group">
+    <label for="date">Date:</label>
+    <input type="date" class="form-control" id="date" @bind="selectedDate" />
+</div>
+
+<div class="form-group">
+    <label for="startTime">Start Time:</label>
+    <input type="time" class="form-control" id="startTime" @bind="startTime" />
+</div>
+
+<div class="form-group">
+    <label for="endTime">End Time:</label>
+    <input type="time" class="form-control" id="endTime" @bind="endTime" />
+</div>
+
+<button class="btn btn-primary" @onclick="CheckAvailability">Check Availability</button>
+
+@if (availabilityChecked)
+{
+    <div class="mt-3 @(isAvailable ? "text-success" : "text-danger")">
+        <h4>
+            The room is @(isAvailable ? "available" : "not available") for the selected time slot.
+        </h4>
+    </div>
+}
+
+@code {
+    private DateTime selectedDate = DateTime.Today;
+    private DateTime startTime = DateTime.Today;
+    private DateTime endTime = DateTime.Today;
+    private bool availabilityChecked = false;
+    private bool isAvailable = false;
+
+    private async Task CheckAvailability()
+    {
+        // Combine the selected date with the start and end times
+        var combinedStartTime = selectedDate.Date.Add(startTime.TimeOfDay);
+        var combinedEndTime = selectedDate.Date.Add(endTime.TimeOfDay);
+
+        // Validate times
+        if (combinedEndTime <= combinedStartTime)
+        {
+            // You might want to add error handling here
+            Console.WriteLine("End time must be after start time");
+            return;
+        }
+
+        isAvailable = await CalendarService.IsRoomAvailable(combinedStartTime, combinedEndTime);
+        availabilityChecked = true;
+    }
+} 

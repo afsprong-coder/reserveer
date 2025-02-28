@@ -1,57 +1,43 @@
-# My Vue.js Calendar App
+# Room Reservation Checker
 
-This project is a Vue.js application that features a date picker and checks the availability of selected dates against Google Calendar.
+A Blazor Server application that integrates with Google Calendar API to check room availability.
 
-## Project Structure
+## Prerequisites
 
-```
-my-vue-app
-├── public
-│   ├── index.html          # Main HTML file for the application
-├── src
-│   ├── components
-│   │   └── DatePicker.vue  # Vue component for date selection
-│   ├── views
-│   │   └── CalendarView.vue # Main view for the calendar
-│   ├── App.vue             # Root Vue component
-│   ├── main.js             # Entry point for the Vue application
-├── package.json            # npm configuration file
-├── babel.config.js         # Babel configuration file
-├── .gitignore              # Git ignore file
-└── README.md               # Project documentation
-```
+- .NET 8.0 SDK
+- A Google Cloud Platform account
+- Visual Studio 2022 or VS Code (optional)
 
 ## Installation
 
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   ```
+1. Clone this repository
+2. Restore the NuGet packages by running: dotnet restore
 
-2. Navigate to the project directory:
-   ```
-   cd my-vue-app
-   ```
+## Google Calendar API Setup
 
-3. Install the dependencies:
-   ```
-   npm install
-   ```
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project
+3. Enable the Google Calendar API:
+   - In the navigation menu, go to "APIs & Services" > "Library"
+   - Search for "Google Calendar API"
+   - Click "Enable"
 
-## Usage
+4. Create credentials:
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" and select "OAuth 2.0 Client ID"
+   - Select "Desktop Application" as the application type
+   - Download the credentials JSON file
+   - Rename it to "credentials.json"
+   - Place it in your project's root directory
+   - In Visual Studio, set the file properties to "Copy to Output Directory: Copy always"
 
-To run the application, use the following command:
-```
-npm run serve
-```
+5. Update the Calendar ID:
+   - Open `Services/CalendarService.cs`
+   - Replace `YOUR_CALENDAR_ID@group.calendar.google.com` with your actual Google Calendar ID
+   - You can find your calendar ID in Google Calendar settings under "Integrate calendar"
 
-This will start the development server, and you can access the application at `http://localhost:8080`.
+## Running the Application
 
-## Features
-
-- Date Picker: Users can select a date using the date picker component.
-- Google Calendar Integration: The application checks the availability of the selected date against Google Calendar.
-
-## License
-
-This project is licensed under the MIT License.
+1. Make sure all prerequisites are installed
+2. Ensure credentials.json is in place
+3. Run the application:
