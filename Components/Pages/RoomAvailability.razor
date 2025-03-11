@@ -1,56 +1,77 @@
 @page "/room-availability"
+@using Google.Apis.Calendar.v3.Data
+@using reserveer.Components.Models
+
+@inject DialogService DialogService
 @inject AfsprongCalendarService CalendarService
 
-<h3>Room Availability Checker</h3>
-
-<div class="form-group">
-    <label for="date">Date:</label>
-    <input type="date" class="form-control" id="date" @bind="selectedDate" />
-</div>
-
-<div class="form-group">
-    <label for="startTime">Start Time:</label>
-    <input type="time" class="form-control" id="startTime" @bind="startTime" />
-</div>
-
-<div class="form-group">
-    <label for="endTime">End Time:</label>
-    <input type="time" class="form-control" id="endTime" @bind="endTime" />
-</div>
-
-<button class="btn btn-primary" @onclick="CheckAvailability">Check Availability</button>
-
-@if (availabilityChecked)
-{
-    <div class="mt-3 @(isAvailable ? "text-success" : "text-danger")">
-        <h4>
-            The room is @(isAvailable ? "available" : "not available") for the selected time slot.
-        </h4>
-    </div>
-}
+<RadzenScheduler @ref=@scheduler 
+    SlotRender=@OnSlotRender style="height: 600px;" TItem="Appointment" Data=@appointments StartProperty="Start" EndProperty="End" ShowHeader="true"
+                 TextProperty="Text" SelectedIndex="2"
+    SlotSelect=@OnSlotSelect AppointmentRender=@OnAppointmentRender   >
+    <RadzenDayView />
+    <RadzenWeekView />
+    <RadzenMonthView />
+</RadzenScheduler>
 
 @code {
-    private DateTime selectedDate = DateTime.Today;
-    private DateTime startTime = DateTime.Today;
-    private DateTime endTime = DateTime.Today;
-    private bool availabilityChecked = false;
-    private bool isAvailable = false;
+    RadzenScheduler<Appointment> scheduler;
+    Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
 
-    private async Task CheckAvailability()
+    bool showHeader = true;
+    List<Appointment> appointments = new List<Appointment>();   
+   protected override async Task OnInitializedAsync()
     {
-        // Combine the selected date with the start and end times
-        var combinedStartTime = selectedDate.Date.Add(startTime.TimeOfDay);
-        var combinedEndTime = selectedDate.Date.Add(endTime.TimeOfDay);
-
-        // Validate times
-        if (combinedEndTime <= combinedStartTime)
+        var calendarEvents = await CalendarService.GetEventsForMonth(new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1));
+        foreach (var calendarEvent in calendarEvents)
         {
-            // You might want to add error handling here
-            Console.WriteLine("End time must be after start time");
-            return;
+            appointments.Add(new Appointment
+            {
+                Start = calendarEvent.Start.DateTime ?? DateTime.Parse(calendarEvent.Start.Date),
+                End = calendarEvent.End.DateTime ?? DateTime.Parse(calendarEvent.End.Date),
+                Text = calendarEvent.Summary
+            });
         }
 
-        isAvailable = await CalendarService.IsRoomAvailable(combinedStartTime, combinedEndTime);
-        availabilityChecked = true;
+        await scheduler.Reload();
     }
-} 
+
+    void OnSlotRender(SchedulerSlotRenderEventArgs args)
+    {
+        // Highlight today in month view
+        if (args.View.Text == "Month" && args.Start.Date == DateTime.Today)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
+
+        // Highlight working hours (9-18)
+        if ((args.View.Text == "Week" || args.View.Text == "Day") && args.Start.Hour > 8 && args.Start.Hour < 19)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
+    }
+
+    async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
+    {        
+            Appointment data = await DialogService.OpenAsync<AddAppointment>("Add Appointment",
+                new Dictionary<string, object> { { "Start", args.Start }, { "End", args.End } }); 
+
+            if (data != null)
+            {
+                appointments.Add(data);
+                // Either call the Reload method or reassign the Data property of the Scheduler
+                await scheduler.Reload();
+            }        
+    }
+    
+
+    void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<Appointment> args)
+    {
+        // Never call StateHasChanged in AppointmentRender - would lead to infinite loop
+
+        if (args.Data.Text == "Birthday")
+        {
+            args.Attributes["style"] = "background: red";
+        }
+    }    
+}

@@ -6,6 +6,7 @@ using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AfsprongCalendarService>();
+builder.Services.AddScoped<DialogService>();
+builder.Services.AddScoped<ThemeService>();
 
 var app = builder.Build();
 

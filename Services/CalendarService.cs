@@ -43,4 +43,19 @@ public class AfsprongCalendarService
         Events events = await request.ExecuteAsync();
         return events.Items ?? new List<Event>();
     }
-} 
+
+    public async Task<IList<Event>> GetEventsForMonth(DateTime month)
+    {
+        DateTime startTime = new DateTime(month.Year, month.Month, 1);
+        DateTime endTime = startTime.AddMonths(1).AddSeconds(-1);
+
+        EventsResource.ListRequest request = _calendarService.Events.List(RoomCalendarId);
+        request.TimeMin = startTime;
+        request.TimeMax = endTime;
+        request.SingleEvents = true;
+        request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
+
+        Events events = await request.ExecuteAsync();
+        return events.Items ?? new List<Event>();
+    }
+}
